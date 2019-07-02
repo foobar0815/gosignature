@@ -1,0 +1,11 @@
+@FIRSTNAME@ @LASTNAME@
+@TITLE@ | @USERDEF1@
+
+@USERDEF2@
+@USERDEF3@
+
+@STREET@ | @POSTCODE@ @CITY@
+T @PHONE@ | F @FAX@
+
+Amtsgericht München | HRB 123456
+Geschäftsführer: Austin Ehrhardt
