@@ -19,11 +19,11 @@ func ldapConnect(ldapServer, ldapBind, ldapPassword string) (*ldap.Conn, error) 
 	return conn, err
 }
 
-func ldapSearch(conn *ldap.Conn, ldapBaseDN, userName string) (*ldap.SearchResult, error) {
+func ldapSearch(conn *ldap.Conn, ldapBaseDN, ldapFilter, userName string) (*ldap.SearchResult, error) {
 	searchRequest := ldap.NewSearchRequest(
 		ldapBaseDN,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		"(&(objectCategory=person)(objectClass=user)(sAMAccountName="+userName+"))",
+		"("+ldapFilter+"(sAMAccountName="+userName+"))",
 		[]string{"*"},
 		nil,
 	)

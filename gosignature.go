@@ -45,7 +45,7 @@ func main() {
 			conn, err := ldapConnect(ldapServer, cfg.Section("Main").Key("LDAPReaderAccountName").String(), cfg.Section("Main").Key("LDAPReaderAccountPassword").String())
 			checkErr(err)
 
-			ldapSearchresult, err := ldapSearch(conn, ldapBaseDN, userName)
+			ldapSearchresult, err := ldapSearch(conn, ldapBaseDN, cfg.Section("Main").Key("LDAPFilter").MustString("&(objectCategory=person)(objectClass=user)"), userName)
 			checkErr(err)
 			ldapEntry = ldapSearchToHash(ldapSearchresult)
 
