@@ -70,11 +70,13 @@ func main() {
 		ldapEntry = ldapFakeEntry()
 	}
 
-	if ldapEntry[cfg.Section("FieldMapping").Key("SignType").String()] != "" {
-		templateNames["signature"] = ldapEntry[cfg.Section("FieldMapping").Key("SignType").String()]
+	fieldMap := mapFields(ldapEntry, cfg.Section("FieldMapping").KeysHash())
+
+	if fieldMap["SignType"] != "" {
+		templateNames["signature"] = fieldMap["SignType"]
 	}
-	if ldapEntry[cfg.Section("FieldMapping").Key("SignTypeReply").String()] != "" {
-		templateNames["signatureReply"] = ldapEntry[cfg.Section("FieldMapping").Key("SignTypeReply").String()]
+	if fieldMap["SignTypeReply"] != "" {
+		templateNames["signatureReply"] = fieldMap["SignTypeReply"]
 	}
 
 	extensions := [3]string{"txt", "htm", "rtf"}
@@ -88,16 +90,13 @@ func main() {
 				for _, ex := range extensions {
 					signature, err := readTemplate(filepath.Join(templateFolder, templateName+"."+ex))
 					checkErr(err)
-					signature = generateSignature(ldapEntry,
-						cfg.Section("FieldMapping").KeysHash(),
+					signature = generateSignature(fieldMap,
 						cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
 						signature)
-					signature = replaceFullname(ldapEntry,
-						cfg.Section("FieldMapping").KeysHash(),
+					signature = replaceFullname(fieldMap,
 						cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
 						signature)
-					signature = replaceSigntitle(ldapEntry,
-						cfg.Section("FieldMapping").KeysHash(),
+					signature = replaceSigntitle(fieldMap,
 						cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
 						signature, ex)
 					err = writeSignature(destFolder, templateName, ex, signature)
@@ -131,25 +130,31 @@ func writeSignature(destFolder, templateName, extension, content string) error {
 	return err
 }
 
-func generateSignature(ldapEntry, fieldMapping map[string]string, placeHolder, template string) string {
+func mapFields(ldapEntry, fieldMapping map[string]string) map[string]string {
+	m := make(map[string]string)
 	for k, v := range fieldMapping {
-		if v != "" {
-			field := strings.ToUpper(placeHolder + k + placeHolder)
-			template = strings.Replace(template, field, ldapEntry[v], -1)
-		}
+		m[k] = ldapEntry[v]
+	}
+
+	return m
+}
+
+func generateSignature(fieldMap map[string]string, placeHolder, template string) string {
+	for k, v := range fieldMap {
+		template = strings.Replace(template, strings.ToUpper(placeHolder+k+placeHolder), v, -1)
 	}
 
 	return template
 
 }
 
-func replaceFullname(ldapEntry, fieldMapping map[string]string, placeHolder, template string) string {
+func replaceFullname(fieldMap map[string]string, placeHolder, template string) string {
 	fullname := []string{}
 	fnFields := [4]string{"Title", "FirstName", "Initials", "LastName"}
 
 	for _, field := range fnFields {
-		if ldapEntry[fieldMapping[field]] != "" {
-			fullname = append(fullname, ldapEntry[fieldMapping[field]])
+		if fieldMap[field] != "" {
+			fullname = append(fullname, fieldMap[field])
 		}
 	}
 
@@ -158,12 +163,12 @@ func replaceFullname(ldapEntry, fieldMapping map[string]string, placeHolder, tem
 	return template
 }
 
-func replaceSigntitle(ldapEntry, fieldMapping map[string]string, placeHolder, template, extension string) string {
+func replaceSigntitle(fieldMap map[string]string, placeHolder, template, extension string) string {
 	signtitle := []string{}
 	stFields := [2]string{"SignTitle1", "SignTitle2"}
 	for _, field := range stFields {
-		if ldapEntry[fieldMapping[field]] != "" {
-			signtitle = append(signtitle, ldapEntry[fieldMapping[field]])
+		if fieldMap[field] != "" {
+			signtitle = append(signtitle, fieldMap[field])
 		}
 	}
 	newline := ""
