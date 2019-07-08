@@ -80,10 +80,11 @@ func main() {
 	extensions := [3]string{"txt", "htm", "rtf"}
 	generated := []string{}
 	templateFolder := filepath.Join(programPath, cfg.Section("Main").Key("TemplateFolder").MustString("Vorlagen"))
+	destFolder := getDestFolder()
 	if len(templateNames) > 0 {
 		for _, templateName := range templateNames {
 			if !contains(generated, templateName) {
-				copyFile(filepath.Join(templateFolder, templateName+".jpg"), templateName+".jpg")
+				copyFile(filepath.Join(templateFolder, templateName+".jpg"), filepath.Join(destFolder, templateName+".jpg"))
 				for _, ex := range extensions {
 					signature, err := readTemplate(filepath.Join(templateFolder, templateName+"."+ex))
 					checkErr(err)
@@ -99,7 +100,7 @@ func main() {
 						cfg.Section("FieldMapping").KeysHash(),
 						cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
 						signature, ex)
-					err = writeSignature(templateName, ex, signature)
+					err = writeSignature(destFolder, templateName, ex, signature)
 					checkErr(err)
 					generated = append(generated, templateName)
 				}
@@ -123,9 +124,9 @@ func readTemplate(template string) (string, error) {
 	return string(read), err
 }
 
-func writeSignature(templateName, extension, content string) error {
+func writeSignature(destFolder, templateName, extension, content string) error {
 	fileName := templateName + "." + extension
-	err := ioutil.WriteFile(fileName, []byte(content), 0644)
+	err := ioutil.WriteFile(filepath.Join(destFolder, fileName), []byte(content), 0644)
 
 	return err
 }
