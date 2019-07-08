@@ -59,7 +59,7 @@ func main() {
 					templateNames["signature"] = cfg.Section("Main").Key("FixedSignTypeForDN" + strconv.Itoa(i)).String()
 				}
 				if cfg.Section("Main").Key("FixedSignTypeReplyForDN"+strconv.Itoa(i)).String() != "" {
-					templateNames["signature"] = cfg.Section("Main").Key("FixedSignTypeReplyForDN" + strconv.Itoa(i)).String()
+					templateNames["signatureReply"] = cfg.Section("Main").Key("FixedSignTypeReplyForDN" + strconv.Itoa(i)).String()
 				}
 				break
 			} else if i == len(ldapConnStrings) {
