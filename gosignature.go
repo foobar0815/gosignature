@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/text/encoding/charmap"
 	"gopkg.in/ini.v1"
 )
 
@@ -20,6 +19,7 @@ func main() {
 
 	configFile := flag.String("ini", "OutlookSignature.ini", "use alternative configuration file")
 	testmode := flag.Bool("testmode", false, "run in test mode")
+	newparser := flag.Bool("newparser", false, "use the new template parser")
 	flag.Parse()
 
 	cfg, err := readConfig(filepath.Join(programPath, *configFile))
@@ -90,15 +90,14 @@ func main() {
 				for _, ex := range extensions {
 					signature, err := readTemplate(filepath.Join(templateFolder, templateName+"."+ex))
 					checkErr(err)
-					signature = generateSignature(fieldMap,
-						cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
-						signature)
-					signature = replaceFullname(fieldMap,
-						cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
-						signature)
-					signature = replaceSigntitle(fieldMap,
-						cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
-						signature, ex)
+					if *newparser {
+						signature = newParser(fieldMap, templateName, signature, ex)
+					} else {
+						signature = compatParser(fieldMap,
+							cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
+							signature,
+							ex)
+					}
 					err = writeSignature(destFolder, templateName, ex, signature)
 					checkErr(err)
 					generated = append(generated, templateName)
@@ -137,55 +136,4 @@ func mapFields(ldapEntry, fieldMapping map[string]string) map[string]string {
 	}
 
 	return m
-}
-
-func generateSignature(fieldMap map[string]string, placeHolder, template string) string {
-	for k, v := range fieldMap {
-		template = strings.Replace(template, strings.ToUpper(placeHolder+k+placeHolder), v, -1)
-	}
-
-	return template
-
-}
-
-func replaceFullname(fieldMap map[string]string, placeHolder, template string) string {
-	fullname := []string{}
-	fnFields := [4]string{"Title", "FirstName", "Initials", "LastName"}
-
-	for _, field := range fnFields {
-		if fieldMap[field] != "" {
-			fullname = append(fullname, fieldMap[field])
-		}
-	}
-
-	template = strings.Replace(template, placeHolder+"FULLNAME"+placeHolder, strings.Join(fullname, " "), -1)
-
-	return template
-}
-
-func replaceSigntitle(fieldMap map[string]string, placeHolder, template, extension string) string {
-	signtitle := []string{}
-	stFields := [2]string{"SignTitle1", "SignTitle2"}
-	for _, field := range stFields {
-		if fieldMap[field] != "" {
-			signtitle = append(signtitle, fieldMap[field])
-		}
-	}
-	newline := ""
-	switch extension {
-	case "txt":
-		newline = "\n"
-	case "rtf":
-		newline = "\\line\n"
-	case "htm":
-		newline = "<br>"
-	}
-	template = strings.Replace(template, placeHolder+"SIGNTITLE"+placeHolder, strings.Join(signtitle, newline), -1)
-
-	if extension == "rtf" {
-		template, _ = charmap.ISO8859_1.NewEncoder().String(template)
-	}
-
-	return template
-
 }

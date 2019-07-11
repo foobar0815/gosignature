@@ -1,0 +1,21 @@
+<div style="font-family: Arial, Helvetica, sans-serif">
+  <p>
+    <span style="font-weight: bold">{{ .FirstName }} {{ .LastName }}</span><br>
+    {{ .Title }} | {{ .UserDef1 }}
+  </p>
+
+  <p>
+    {{ .UserDef2 }}<br>
+    <a href="http://{{ .UserDef3 }}">{{ .UserDef3 }}</a>
+  </p>
+
+  <p>
+    {{ .Street }} | {{ .Postcode }} {{ .City }}<br>
+    T <a href="tel:{{ .Phone }}">{{ .Phone }}</a> | F {{ .Fax }}
+  </p>
+
+  <p>
+    Amtsgericht München | HRB 123456<br>
+    Geschäftsführer: Austin Ehrhardt
+  </p>
+</div>
