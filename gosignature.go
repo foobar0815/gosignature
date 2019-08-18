@@ -98,6 +98,9 @@ func main() {
 							signature,
 							ex)
 					}
+					if ex == "rtf" {
+						signature = escapeUnicode(signature)
+					}
 					err = writeSignature(destFolder, templateName, ex, signature)
 					checkErr(err)
 					generated = append(generated, templateName)

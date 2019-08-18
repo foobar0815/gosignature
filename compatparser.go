@@ -2,8 +2,6 @@ package main
 
 import (
 	"strings"
-
-	"golang.org/x/text/encoding/charmap"
 )
 
 func compatParser(fieldMap map[string]string, placeHolder, template, ex string) string {
@@ -56,10 +54,6 @@ func replaceSigntitle(fieldMap map[string]string, placeHolder, template, extensi
 		newline = "<br>"
 	}
 	template = strings.Replace(template, placeHolder+"SIGNTITLE"+placeHolder, strings.Join(signtitle, newline), -1)
-
-	if extension == "rtf" {
-		template, _ = charmap.ISO8859_1.NewEncoder().String(template)
-	}
 
 	return template
 

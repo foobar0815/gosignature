@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"strings"
 	"text/template"
-
-	"golang.org/x/text/encoding/charmap"
 )
 
 func newParser(fieldMap map[string]string, templateName, tmpl, extension string) string {
@@ -20,10 +18,6 @@ func newParser(fieldMap map[string]string, templateName, tmpl, extension string)
 	checkErr(err)
 	err = t.Execute(buf, fieldMap)
 	tmpl = buf.String()
-
-	if extension == "rtf" {
-		tmpl, _ = charmap.ISO8859_1.NewEncoder().String(tmpl)
-	}
 
 	return tmpl
 }

@@ -7,6 +7,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"strconv"
 )
 
 func contains(slice []string, searchString string) bool {
@@ -65,4 +66,18 @@ func getDestFolder() string {
 
 	return destFolder
 
+}
+
+func escapeUnicode(s string) string {
+	convertedString := ""
+
+	for _, r := range s {
+		if r > 127 {
+			convertedString += "\\u" + strconv.Itoa(int(r)) + "?"
+		} else {
+			convertedString += string(r)
+		}
+	}
+
+	return convertedString
 }
