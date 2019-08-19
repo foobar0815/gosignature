@@ -127,7 +127,13 @@ func readTemplate(template string) (string, error) {
 
 func writeSignature(destFolder, templateName, extension, content string) error {
 	fileName := templateName + "." + extension
-	err := ioutil.WriteFile(filepath.Join(destFolder, fileName), []byte(content), 0644)
+
+	err := os.MkdirAll(destFolder, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(filepath.Join(destFolder, fileName), []byte(content), os.ModePerm)
 
 	return err
 }
