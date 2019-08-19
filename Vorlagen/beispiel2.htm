@@ -1,17 +1,17 @@
 <div style="font-family: Arial, Helvetica, sans-serif">
   <p>
-    <span style="font-weight: bold">{{ .FirstName }} {{ .LastName }}</span><br>
-    {{ .Title }} | {{ .UserDef1 }}
+    <span style="font-weight: bold">[[ .FirstName ]] [[ .LastName ]]</span><br>
+    [[ .Title ]] | [[ .UserDef1 ]]
   </p>
 
   <p>
-    {{ .UserDef2 }}<br>
-    <a href="http://{{ .UserDef3 }}">{{ .UserDef3 }}</a>
+    [[ .UserDef2 ]]<br>
+    <a href="http://[[ .UserDef3 ]]">[[ .UserDef3 ]]</a>
   </p>
 
   <p>
-    {{ .Street }} | {{ .Postcode }} {{ .City }}<br>
-    T <a href="tel:{{ .Phone }}">{{ .Phone }}</a> | F {{ .Fax }}
+    [[ .Street ]] | [[ .Postcode ]] [[ .City ]]<br>
+    T <a href="tel:[[ .Phone ]]">[[ .Phone ]]</a> | F [[ .Fax ]]
   </p>
 
   <p>
