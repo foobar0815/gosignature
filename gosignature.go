@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"golang.org/x/text/encoding/charmap"
 	"gopkg.in/ini.v1"
 )
 
@@ -98,8 +99,8 @@ func main() {
 							signature,
 							ex)
 					}
-					if ex == "rtf" {
-						signature = escapeUnicode(signature)
+					if ex == "rtf" || ex == "txt" {
+						signature, _ = charmap.Windows1252.NewEncoder().String(signature)
 					}
 					err = writeSignature(destFolder, templateName, ex, signature)
 					checkErr(err)
