@@ -84,10 +84,11 @@ func main() {
 	generated := []string{}
 	templateFolder := filepath.Join(programPath, cfg.Section("Main").Key("TemplateFolder").MustString("Vorlagen"))
 	destFolder := getDestFolder()
+	prepareFolder(destFolder)
 	if len(templateNames) > 0 {
 		for _, templateName := range templateNames {
 			if !contains(generated, templateName) {
-				copyFile(filepath.Join(templateFolder, templateName+".jpg"), filepath.Join(destFolder, templateName+".jpg"))
+				copyImages(templateFolder, templateName, destFolder)
 				for _, ex := range extensions {
 					signature, err := readTemplate(filepath.Join(templateFolder, templateName+"."+ex))
 					checkErr(err)
@@ -126,15 +127,19 @@ func readTemplate(template string) (string, error) {
 	return string(read), err
 }
 
-func writeSignature(destFolder, templateName, extension, content string) error {
-	fileName := templateName + "." + extension
-
+func prepareFolder(destFolder string) error {
 	err := os.MkdirAll(destFolder, os.ModePerm)
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(filepath.Join(destFolder, fileName), []byte(content), os.ModePerm)
+	return err
+}
+
+func writeSignature(destFolder, templateName, extension, content string) error {
+	fileName := templateName + "." + extension
+
+	err := ioutil.WriteFile(filepath.Join(destFolder, fileName), []byte(content), os.ModePerm)
 
 	return err
 }
@@ -146,4 +151,17 @@ func mapFields(ldapEntry, fieldMapping map[string]string) map[string]string {
 	}
 
 	return m
+}
+
+func copyImages(templateFolder, templateName, destFolder string) {
+	extensions := [3]string{"gif", "jpg", "png"}
+
+	for _, extension := range extensions {
+		images, _ := filepath.Glob(filepath.Join(templateFolder, templateName+"*"+extension))
+
+		for _, image := range images {
+			copyFile(image, filepath.Clean(destFolder)+"/"+filepath.Base(image))
+		}
+	}
+
 }

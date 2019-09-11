@@ -31,7 +31,7 @@ func copyFile(sourceFile, destinationFile string) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(filepath.FromSlash(destinationFile), input, 0644)
+	err = ioutil.WriteFile(filepath.FromSlash(destinationFile), input, os.ModePerm)
 	if err != nil {
 		return err
 	}
