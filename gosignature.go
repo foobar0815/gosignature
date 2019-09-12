@@ -160,7 +160,7 @@ func copyImages(templateFolder, templateName, destFolder string) {
 		images, _ := filepath.Glob(filepath.Join(templateFolder, templateName+"*"+extension))
 
 		for _, image := range images {
-			copyFile(image, filepath.Clean(destFolder)+"/"+filepath.Base(image))
+			copyFile(image, filepath.Join(destFolder, filepath.Base(image)))
 		}
 	}
 
