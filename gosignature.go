@@ -84,7 +84,8 @@ func main() {
 	generated := []string{}
 	templateFolder := filepath.Join(programPath, cfg.Section("Main").Key("TemplateFolder").MustString("Vorlagen"))
 	destFolder := getDestFolder()
-	prepareFolder(destFolder)
+	err = prepareFolder(destFolder)
+	checkErr(err)
 	if len(templateNames) > 0 {
 		for _, templateName := range templateNames {
 			if !contains(generated, templateName) {
@@ -129,9 +130,6 @@ func readTemplate(template string) (string, error) {
 
 func prepareFolder(destFolder string) error {
 	err := os.MkdirAll(destFolder, os.ModePerm)
-	if err != nil {
-		return err
-	}
 
 	return err
 }
