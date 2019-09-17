@@ -34,9 +34,10 @@ func main() {
 		templateNames["signatureReply"] = cfg.Section("Main").Key("FixedSignTypeReply").String()
 	}
 
+	userName := ""
 	ldapEntry := make(map[string]string)
 	if !(*testmode) && cfg.Section("Main").Key("LDAPBaseObjectDN").String() != "" {
-		userName, err := getUsername()
+		userName, err = getUsername()
 		checkErr(err)
 		ldapConnStrings := strings.Split(cfg.Section("Main").Key("LDAPBaseObjectDN").String(), ";")
 		for i := 1; i <= len(ldapConnStrings); i++ {
@@ -68,6 +69,7 @@ func main() {
 			}
 		}
 	} else {
+		userName = "hkearny"
 		ldapEntry = ldapFakeEntry()
 	}
 
@@ -89,7 +91,7 @@ func main() {
 	if len(templateNames) > 0 {
 		for _, templateName := range templateNames {
 			if !contains(generated, templateName) {
-				copyImages(templateFolder, templateName, destFolder)
+				copyImages(templateFolder, templateName, userName, destFolder)
 				for _, ex := range extensions {
 					signature, err := readTemplate(filepath.Join(templateFolder, templateName+"."+ex))
 					checkErr(err)
@@ -151,14 +153,22 @@ func mapFields(ldapEntry, fieldMapping map[string]string) map[string]string {
 	return m
 }
 
-func copyImages(templateFolder, templateName, destFolder string) {
+func copyImages(templateFolder, templateName, userName, destFolder string) {
 	extensions := [3]string{"gif", "jpg", "png"}
 
 	for _, extension := range extensions {
-		images, _ := filepath.Glob(filepath.Join(templateFolder, templateName+"*"+extension))
+		images, _ := filepath.Glob(filepath.Join(templateFolder, templateName+"*."+extension))
 
 		for _, image := range images {
 			copyFile(image, filepath.Join(destFolder, filepath.Base(image)))
+		}
+	}
+
+	for _, extension := range extensions {
+		images, _ := filepath.Glob(filepath.Join(templateFolder, userName+"."+extension))
+
+		for _, image := range images {
+			copyFile(image, filepath.Join(destFolder, "portrait"+filepath.Ext(image)))
 		}
 	}
 
