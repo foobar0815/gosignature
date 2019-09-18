@@ -147,7 +147,9 @@ func writeSignature(destFolder, templateName, extension, content string) error {
 func mapFields(ldapEntry, fieldMapping map[string]string) map[string]string {
 	m := make(map[string]string)
 	for k, v := range fieldMapping {
-		m[k] = ldapEntry[v]
+		if len(v) > 0 {
+			m[k] = ldapEntry[v[1:]]
+		}
 	}
 
 	return m
