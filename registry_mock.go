@@ -2,6 +2,6 @@
 
 package main
 
-func getOutlookVersion() (string, error) {
-	return "", nil
+func setSignature() error {
+	return nil
 }
