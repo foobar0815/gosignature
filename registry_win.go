@@ -10,32 +10,59 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
-func setSignature() error {
-	outlookVersion, _ := getOutlookVersion()
-	log.Println(outlookVersion)
-	if outlookVersion > 14 {
-		outlookProfiles, _ := getOutlookProfiles(strconv.Itoa(outlookVersion) + ".0")
-		log.Println(outlookProfiles)
-		defaultProfile, _ := getOutlookDefaultProfile(strconv.Itoa(outlookVersion) + ".0")
-		log.Println(defaultProfile)
-
-		k, err := registry.OpenKey(registry.CURRENT_USER, `Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+defaultProfile+`\9375CFF0413111d3B88A00104B2A6676\00000002`, registry.SET_VALUE)
-		if err != nil {
-			return err
-		}
-		defer k.Close()
-
-		strings := [2]string{"New Signature", "Reply-Forward Signature"}
-
-		for _, string := range strings {
-			err = k.SetStringValue(string, "foo")
-			if err != nil {
-				return err
+func setSignature(signature, profile string, setforall, nonew, noreply int) error {
+	if nonew != 1 || noreply != 1 {
+		outlookVersion, _ := getOutlookVersion()
+		log.Println(outlookVersion)
+		if outlookVersion > 14 {
+			if profile != "" {
+				if nonew == 0 {
+					setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+profile+`\9375CFF0413111d3B88A00104B2A6676\00000002`, "New Signature", signature)
+				}
+				if noreply == 0 {
+					setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+profile+`\9375CFF0413111d3B88A00104B2A6676\00000002`, "Reply-Forward Signature", signature)
+				}
+			} else if setforall == 1 {
+				outlookProfiles, _ := getOutlookProfiles(strconv.Itoa(outlookVersion) + ".0")
+				log.Println(outlookProfiles)
+				for _, op := range outlookProfiles {
+					if nonew == 0 {
+						setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+op+`\9375CFF0413111d3B88A00104B2A6676\00000002`, "New Signature", signature)
+					}
+					if noreply == 0 {
+						setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+op+`\9375CFF0413111d3B88A00104B2A6676\00000002`, "Reply-Forward Signature", signature)
+					}
+				}
+			} else {
+				defaultProfile, _ := getOutlookDefaultProfile(strconv.Itoa(outlookVersion) + ".0")
+				log.Println(defaultProfile)
+				if nonew == 0 {
+					setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+defaultProfile+`\9375CFF0413111d3B88A00104B2A6676\00000002`, "New Signature", signature)
+				}
+				if noreply == 0 {
+					setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+defaultProfile+`\9375CFF0413111d3B88A00104B2A6676\00000002`, "Reply-Forward Signature", signature)
+				}
 			}
 		}
 	}
 
 	return nil
+}
+
+func setHkcuString(key, name, data string) error {
+	k, err := registry.OpenKey(registry.CURRENT_USER, key, registry.SET_VALUE)
+	if err != nil {
+		return err
+	}
+	defer k.Close()
+
+	err = k.SetStringValue(name, data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 func getOutlookVersion() (int, error) {
