@@ -112,7 +112,8 @@ func main() {
 				}
 			}
 		}
-		setSignature(generated[0],
+		setSignature(templateNames["signature"],
+			templateNames["signatureReply"],
 			cfg.Section("Main").Key("EMailAccount").MustString(""),
 			cfg.Section("Main").Key("SetForAllEMailAccounts").MustInt(0),
 			cfg.Section("Main").Key("NoNewMessageSignature").MustInt(0),
