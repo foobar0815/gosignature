@@ -13,6 +13,13 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+type signatureDefinition struct {
+	templateName  string
+	signatureName string
+	style         string
+	standard      int
+}
+
 func main() {
 	exe, err := os.Executable()
 	checkErr(err)
@@ -26,11 +33,19 @@ func main() {
 	cfg, err := readConfig(filepath.Join(programPath, *configFile))
 	checkErr(err)
 
-	templateNames := make(map[string]map[string]string)
-	templateNames["signature"] = make(map[string]string)
-	templateNames["signatureReply"] = make(map[string]string)
-	templateNames["signature"]["src"] = cfg.Section("Main").Key("FixedSignType").String()
-	templateNames["signatureReply"]["src"] = cfg.Section("Main").Key("FixedSignTypeReply").String()
+	signatureDefintions := []*signatureDefinition{}
+
+	sd := new(signatureDefinition)
+	sd.templateName = cfg.Section("Main").Key("FixedSignType").String()
+	sd.style = "new"
+	sd.standard = cfg.Section("Main").Key("NoNewMessageSignature").MustInt(0)
+	signatureDefintions = append(signatureDefintions, sd)
+
+	sd = new(signatureDefinition)
+	sd.templateName = cfg.Section("Main").Key("FixedSignTypeReply").String()
+	sd.style = "reply"
+	sd.standard = cfg.Section("Main").Key("NoReplyMessageSignature").MustInt(0)
+	signatureDefintions = append(signatureDefintions, sd)
 
 	userName := ""
 	ldapEntry := make(map[string]string)
@@ -55,8 +70,8 @@ func main() {
 			ldapEntry = ldapSearchToHash(ldapSearchresult)
 
 			if len(ldapEntry) > 0 {
-				templateNames["signature"]["src"] = cfg.Section("Main").Key("FixedSignTypeForDN" + strconv.Itoa(i)).MustString(templateNames["signature"]["src"])
-				templateNames["signatureReply"]["src"] = cfg.Section("Main").Key("FixedSignTypeReplyForDN" + strconv.Itoa(i)).MustString(templateNames["signatureReply"]["src"])
+				signatureDefintions[0].templateName = cfg.Section("Main").Key("FixedSignTypeForDN" + strconv.Itoa(i)).MustString(signatureDefintions[0].templateName)
+				signatureDefintions[1].templateName = cfg.Section("Main").Key("FixedSignTypeReplyForDN" + strconv.Itoa(i)).MustString(signatureDefintions[1].templateName)
 				break
 			} else if i == len(ldapConnStrings) {
 				checkErr(errors.New("user not found"))
@@ -70,29 +85,29 @@ func main() {
 	fieldMap := mapFields(ldapEntry, cfg.Section("FieldMapping").KeysHash())
 
 	if fieldMap["SignType"] != "" {
-		templateNames["signature"]["src"] = fieldMap["SignType"]
+		signatureDefintions[0].templateName = fieldMap["SignType"]
 	}
 	if fieldMap["SignTypeReply"] != "" {
-		templateNames["signatureReply"]["src"] = fieldMap["SignTypeReply"]
+		signatureDefintions[1].templateName = fieldMap["SignTypeReply"]
 	}
 
-	if templateNames["signature"]["src"] != "" || templateNames["signatureReply"]["src"] != "" {
+	if signatureDefintions[0].templateName != "" || signatureDefintions[1].templateName != "" {
 		extensions := [3]string{"txt", "htm", "rtf"}
 		generated := []string{}
 		templateFolder := filepath.Join(programPath, cfg.Section("Main").Key("TemplateFolder").MustString("Vorlagen"))
 		destFolder := getDestFolder()
 		err = prepareFolder(destFolder)
 		checkErr(err)
-		templateNames["signature"]["dst"] = cfg.Section("Main").Key("TargetSignType").MustString(templateNames["signature"]["src"])
-		templateNames["signatureReply"]["dst"] = cfg.Section("Main").Key("TargetSignTypeReply").MustString(templateNames["signatureReply"]["src"])
-		for _, templateName := range templateNames {
-			if templateName["src"] != "" && !contains(generated, templateName["dst"]) {
-				copyImages(templateFolder, templateName["src"], templateName["dst"], userName, destFolder)
+		signatureDefintions[0].signatureName = cfg.Section("Main").Key("TargetSignType").MustString(signatureDefintions[0].templateName)
+		signatureDefintions[1].signatureName = cfg.Section("Main").Key("TargetSignTypeReply").MustString(signatureDefintions[1].templateName)
+		for _, sd := range signatureDefintions {
+			if sd.templateName != "" && !contains(generated, sd.signatureName) {
+				copyImages(templateFolder, sd.templateName, sd.signatureName, userName, destFolder)
 				for _, ex := range extensions {
-					signature, err := readTemplate(filepath.Join(templateFolder, templateName["src"]+"."+ex))
+					signature, err := readTemplate(filepath.Join(templateFolder, sd.templateName+"."+ex))
 					checkErr(err)
 					if *newparser {
-						signature = newParser(fieldMap, templateName["src"], signature, ex)
+						signature = newParser(fieldMap, sd.templateName, signature, ex)
 					} else {
 						signature = compatParser(fieldMap,
 							cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
@@ -102,9 +117,9 @@ func main() {
 					if ex == "rtf" || ex == "txt" {
 						signature, _ = charmap.Windows1252.NewEncoder().String(signature)
 					}
-					err = writeSignature(destFolder, templateName["dst"], ex, signature)
+					err = writeSignature(destFolder, sd.signatureName, ex, signature)
 					checkErr(err)
-					generated = append(generated, templateName["dst"])
+					generated = append(generated, sd.signatureName)
 				}
 			}
 		}
