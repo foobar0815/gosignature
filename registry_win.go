@@ -3,46 +3,31 @@
 package main
 
 import (
-	"log"
 	"strconv"
 	"strings"
 
 	"golang.org/x/sys/windows/registry"
 )
 
-func setSignature(signature, replysignature, profile string, setforall, nonew, noreply int) error {
-	if nonew != 1 || noreply != 1 {
-		outlookVersion, _ := getOutlookVersion()
-		log.Println(outlookVersion)
-		if outlookVersion > 14 {
-			if profile != "" {
-				if nonew == 0 {
-					setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+profile+`\9375CFF0413111d3B88A00104B2A6676\00000002`, "New Signature", signature)
-				}
-				if noreply == 0 {
-					setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+profile+`\9375CFF0413111d3B88A00104B2A6676\00000002`, "Reply-Forward Signature", replysignature)
-				}
-			} else if setforall == 1 {
-				outlookProfiles, _ := getOutlookProfiles(strconv.Itoa(outlookVersion) + ".0")
-				log.Println(outlookProfiles)
-				for _, op := range outlookProfiles {
-					if nonew == 0 {
-						setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+op+`\9375CFF0413111d3B88A00104B2A6676\00000002`, "New Signature", signature)
-					}
-					if noreply == 0 {
-						setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+op+`\9375CFF0413111d3B88A00104B2A6676\00000002`, "Reply-Forward Signature", replysignature)
-					}
-				}
-			} else {
-				defaultProfile, _ := getOutlookDefaultProfile(strconv.Itoa(outlookVersion) + ".0")
-				log.Println(defaultProfile)
-				if nonew == 0 {
-					setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+defaultProfile+`\9375CFF0413111d3B88A00104B2A6676\00000002`, "New Signature", signature)
-				}
-				if noreply == 0 {
-					setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+defaultProfile+`\9375CFF0413111d3B88A00104B2A6676\00000002`, "Reply-Forward Signature", replysignature)
-				}
+func setSignature(signature, style, profile string, setforall int) error {
+	name := ""
+	if style == "new" {
+		name = "New Signature"
+	} else if style == "reply" {
+		name = "Reply-Forward Signature"
+	}
+	outlookVersion, _ := getOutlookVersion()
+	if outlookVersion > 14 {
+		if profile != "" {
+			setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+profile+`\9375CFF0413111d3B88A00104B2A6676\00000002`, name, signature)
+		} else if setforall == 1 {
+			outlookProfiles, _ := getOutlookProfiles(strconv.Itoa(outlookVersion) + ".0")
+			for _, op := range outlookProfiles {
+				setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+op+`\9375CFF0413111d3B88A00104B2A6676\00000002`, name, signature)
 			}
+		} else {
+			defaultProfile, _ := getOutlookDefaultProfile(strconv.Itoa(outlookVersion) + ".0")
+			setHkcuString(`Software\Microsoft\Office\`+strconv.Itoa(outlookVersion)+`.0\Outlook\Profiles\`+defaultProfile+`\9375CFF0413111d3B88A00104B2A6676\00000002`, name, signature)
 		}
 	}
 

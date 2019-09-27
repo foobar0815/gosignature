@@ -2,6 +2,6 @@
 
 package main
 
-func setSignature(signature, replysignature, profile string, setforall, nonew, noreply int) error {
+func setSignature(signature, style, profile string, setforall int) error {
 	return nil
 }
