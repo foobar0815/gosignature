@@ -81,3 +81,19 @@ func escapeUnicode(s string) string {
 
 	return convertedString
 }
+
+func removeContents(dir string) error {
+	items, err := filepath.Glob(filepath.Join(dir, "*"))
+	if err != nil {
+		return err
+	}
+
+	for _, item := range items {
+		err = os.RemoveAll(item)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

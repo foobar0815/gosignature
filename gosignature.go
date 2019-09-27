@@ -98,6 +98,9 @@ func main() {
 		destFolder := getDestFolder()
 		err = prepareFolder(destFolder)
 		checkErr(err)
+		if cfg.Section("Main").Key("EmptySignatureFolder").MustInt(0) == 1 {
+			removeContents(destFolder)
+		}
 		signatureDefintions[0].signatureName = cfg.Section("Main").Key("TargetSignType").MustString(signatureDefintions[0].templateName)
 		signatureDefintions[1].signatureName = cfg.Section("Main").Key("TargetSignTypeReply").MustString(signatureDefintions[1].templateName)
 		for _, sd := range signatureDefintions {
