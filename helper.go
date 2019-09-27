@@ -6,8 +6,10 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
+	"strings"
 )
 
 func contains(slice []string, searchString string) bool {
@@ -96,4 +98,16 @@ func removeContents(dir string) error {
 	}
 
 	return nil
+}
+
+func winExpandEnv(path string) string {
+	re := regexp.MustCompile(`%[^\%]+%`)
+
+	compatPath := re.ReplaceAllStringFunc(path, func(match string) string {
+		match = strings.Replace(match, "%", "", -1)
+		match = "${" + match + "}"
+		return match
+	})
+
+	return os.ExpandEnv(compatPath)
 }
