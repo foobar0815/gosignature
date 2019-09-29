@@ -115,7 +115,8 @@ func main() {
 					signature, err := readTemplate(filepath.Join(templateFolder, sd.templateName+"."+ex))
 					checkErr(err)
 					if *newparser {
-						signature = newParser(fieldMap, sd.templateName, signature, ex)
+						signature, err = newParser(fieldMap, sd.templateName, signature, ex)
+						checkErr(err)
 					} else {
 						signature = compatParser(fieldMap,
 							cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),

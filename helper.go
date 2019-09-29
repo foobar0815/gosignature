@@ -57,13 +57,11 @@ func getUsername() (string, error) {
 
 func getDestFolder() string {
 	destFolder := ""
-	err := *new(error)
 
 	if runtime.GOOS == "windows" {
 		destFolder = filepath.Join(os.Getenv("appdata"), "Microsoft", "Signatures")
 	} else {
-		destFolder, err = os.Getwd()
-		checkErr(err)
+		destFolder, _ = os.Getwd()
 	}
 
 	return destFolder
