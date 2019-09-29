@@ -95,7 +95,12 @@ func main() {
 		extensions := [3]string{"txt", "htm", "rtf"}
 		generated := []string{}
 		templateFolder := filepath.Join(programPath, cfg.Section("Main").Key("TemplateFolder").MustString("Vorlagen"))
-		destFolder := getDestFolder()
+		destFolder := ""
+		if cfg.Section("Main").Key("AppDataPath").String() != "" {
+			destFolder = winExpandEnv(cfg.Section("Main").Key("AppDataPath").String())
+		} else {
+			destFolder = getDestFolder()
+		}
 		err = prepareFolder(destFolder)
 		checkErr(err)
 		if cfg.Section("Main").Key("EmptySignatureFolder").MustInt(0) == 1 {
