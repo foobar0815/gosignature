@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -29,6 +28,7 @@ func main() {
 	configFile := flag.String("ini", "OutlookSignature.ini", "use alternative configuration file")
 	testmode := flag.Bool("testmode", false, "run in test mode")
 	newparser := flag.Bool("newparser", false, "use the new template parser")
+	force := flag.Bool("force", false, "empty destination directory without confirmation")
 	flag.Parse()
 
 	cfg, err := readConfig(filepath.Join(programPath, *configFile))
@@ -104,7 +104,7 @@ func main() {
 		}
 		err = prepareFolder(destFolder)
 		checkErr(err)
-		if cfg.Section("Main").Key("EmptySignatureFolder").MustInt(0) == 1 && runtime.GOOS == "windows" {
+		if cfg.Section("Main").Key("EmptySignatureFolder").MustInt(0) == 1 && (*force || askForConfirmation("Do you really want to empty the destination directory?")) {
 			removeContents(destFolder)
 		}
 		signatureDefintions[0].signatureName = cfg.Section("Main").Key("TargetSignType").MustString(signatureDefintions[0].templateName)
