@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -103,7 +104,7 @@ func main() {
 		}
 		err = prepareFolder(destFolder)
 		checkErr(err)
-		if cfg.Section("Main").Key("EmptySignatureFolder").MustInt(0) == 1 {
+		if cfg.Section("Main").Key("EmptySignatureFolder").MustInt(0) == 1 && runtime.GOOS == "windows" {
 			removeContents(destFolder)
 		}
 		signatureDefintions[0].signatureName = cfg.Section("Main").Key("TargetSignType").MustString(signatureDefintions[0].templateName)
