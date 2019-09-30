@@ -136,7 +136,7 @@ func main() {
 				if sd.nodefault == 0 {
 					setSignature(sd.signatureName,
 						sd.style,
-						cfg.Section("Main").Key("EMailAccount").MustString(""),
+						winExpandEnv(cfg.Section("Main").Key("EMailAccount").MustString("")),
 						cfg.Section("Main").Key("SetForAllEMailAccounts").MustInt(0))
 				}
 			}
