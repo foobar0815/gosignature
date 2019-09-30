@@ -110,7 +110,6 @@ func main() {
 		signatureDefintions[0].signatureName = cfg.Section("Main").Key("TargetSignType").MustString(signatureDefintions[0].templateName)
 		signatureDefintions[1].signatureName = cfg.Section("Main").Key("TargetSignTypeReply").MustString(signatureDefintions[1].templateName)
 		for _, sd := range signatureDefintions {
-<<<<<<< HEAD
 			if sd.templateName != "" {
 				if !contains(generated, sd.signatureName) {
 					copyImages(templateFolder, sd.templateName, sd.signatureName, userName, destFolder)
@@ -118,7 +117,8 @@ func main() {
 						signature, err := readTemplate(filepath.Join(templateFolder, sd.templateName+"."+ex))
 						checkErr(err)
 						if *newparser {
-							signature = newParser(fieldMap, sd.templateName, signature, ex)
+							signature, err = newParser(fieldMap, sd.templateName, signature, ex)
+							checkErr(err)
 						} else {
 							signature = compatParser(fieldMap,
 								cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
@@ -131,21 +131,6 @@ func main() {
 						err = writeSignature(destFolder, sd.signatureName, ex, signature)
 						checkErr(err)
 						generated = append(generated, sd.signatureName)
-=======
-			if sd.templateName != "" && !contains(generated, sd.signatureName) {
-				copyImages(templateFolder, sd.templateName, sd.signatureName, userName, destFolder)
-				for _, ex := range extensions {
-					signature, err := readTemplate(filepath.Join(templateFolder, sd.templateName+"."+ex))
-					checkErr(err)
-					if *newparser {
-						signature, err = newParser(fieldMap, sd.templateName, signature, ex)
-						checkErr(err)
-					} else {
-						signature = compatParser(fieldMap,
-							cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
-							signature,
-							ex)
->>>>>>> master
 					}
 				}
 				if sd.nodefault == 0 {
