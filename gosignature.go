@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -18,7 +17,7 @@ type signatureDefinition struct {
 	templateName  string
 	signatureName string
 	style         string
-	standard      int
+	nodefault     int
 }
 
 func main() {
@@ -29,6 +28,7 @@ func main() {
 	configFile := flag.String("ini", "OutlookSignature.ini", "use alternative configuration file")
 	testmode := flag.Bool("testmode", false, "run in test mode")
 	newparser := flag.Bool("newparser", false, "use the new template parser")
+	force := flag.Bool("force", false, "empty destination directory without confirmation")
 	flag.Parse()
 
 	cfg, err := readConfig(filepath.Join(programPath, *configFile))
@@ -39,13 +39,13 @@ func main() {
 	sd := new(signatureDefinition)
 	sd.templateName = cfg.Section("Main").Key("FixedSignType").String()
 	sd.style = "new"
-	sd.standard = cfg.Section("Main").Key("NoNewMessageSignature").MustInt(0)
+	sd.nodefault = cfg.Section("Main").Key("NoNewMessageSignature").MustInt(0)
 	signatureDefintions = append(signatureDefintions, sd)
 
 	sd = new(signatureDefinition)
 	sd.templateName = cfg.Section("Main").Key("FixedSignTypeReply").String()
 	sd.style = "reply"
-	sd.standard = cfg.Section("Main").Key("NoReplyMessageSignature").MustInt(0)
+	sd.nodefault = cfg.Section("Main").Key("NoReplyMessageSignature").MustInt(0)
 	signatureDefintions = append(signatureDefintions, sd)
 
 	userName := ""
@@ -104,32 +104,40 @@ func main() {
 		}
 		err = prepareFolder(destFolder)
 		checkErr(err)
-		if cfg.Section("Main").Key("EmptySignatureFolder").MustInt(0) == 1 && runtime.GOOS == "windows" {
+		if cfg.Section("Main").Key("EmptySignatureFolder").MustInt(0) == 1 && (*force || askForConfirmation("Do you really want to empty the destination directory?")) {
 			removeContents(destFolder)
 		}
 		signatureDefintions[0].signatureName = cfg.Section("Main").Key("TargetSignType").MustString(signatureDefintions[0].templateName)
 		signatureDefintions[1].signatureName = cfg.Section("Main").Key("TargetSignTypeReply").MustString(signatureDefintions[1].templateName)
 		for _, sd := range signatureDefintions {
-			if sd.templateName != "" && !contains(generated, sd.signatureName) {
-				copyImages(templateFolder, sd.templateName, sd.signatureName, userName, destFolder)
-				for _, ex := range extensions {
-					signature, err := readTemplate(filepath.Join(templateFolder, sd.templateName+"."+ex))
-					checkErr(err)
-					if *newparser {
-						signature, err = newParser(fieldMap, sd.templateName, signature, ex)
+			if sd.templateName != "" {
+				if !contains(generated, sd.signatureName) {
+					copyImages(templateFolder, sd.templateName, sd.signatureName, userName, destFolder)
+					for _, ex := range extensions {
+						signature, err := readTemplate(filepath.Join(templateFolder, sd.templateName+"."+ex))
 						checkErr(err)
-					} else {
-						signature = compatParser(fieldMap,
-							cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
-							signature,
-							ex)
+						if *newparser {
+							signature, err = newParser(fieldMap, sd.templateName, signature, ex)
+							checkErr(err)
+						} else {
+							signature = compatParser(fieldMap,
+								cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
+								signature,
+								ex)
+						}
+						if ex == "rtf" || ex == "txt" {
+							signature, _ = charmap.Windows1252.NewEncoder().String(signature)
+						}
+						err = writeSignature(destFolder, sd.signatureName, ex, signature)
+						checkErr(err)
+						generated = append(generated, sd.signatureName)
 					}
-					if ex == "rtf" || ex == "txt" {
-						signature, _ = charmap.Windows1252.NewEncoder().String(signature)
-					}
-					err = writeSignature(destFolder, sd.signatureName, ex, signature)
-					checkErr(err)
-					generated = append(generated, sd.signatureName)
+				}
+				if sd.nodefault == 0 {
+					setSignature(sd.signatureName,
+						sd.style,
+						winExpandEnv(cfg.Section("Main").Key("EMailAccount").MustString("")),
+						cfg.Section("Main").Key("SetForAllEMailAccounts").MustInt(0))
 				}
 			}
 		}

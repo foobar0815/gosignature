@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -108,4 +110,22 @@ func winExpandEnv(path string) string {
 	})
 
 	return os.ExpandEnv(compatPath)
+}
+
+func askForConfirmation(question string) bool {
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		fmt.Printf("%s [y/n]: ", question)
+
+		response, _ := reader.ReadString('\n')
+
+		response = strings.ToLower(strings.TrimSpace(response))
+
+		if response == "y" || response == "yes" {
+			return true
+		} else if response == "n" || response == "no" {
+			return false
+		}
+	}
 }
