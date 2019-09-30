@@ -5,12 +5,18 @@ import (
 	"text/template"
 )
 
-func newParser(fieldMap map[string]string, templateName, tmpl, extension string) string {
+func newParser(fieldMap map[string]string, templateName, tmpl, extension string) (string, error) {
 	buf := new(bytes.Buffer)
 	t, err := template.New(templateName).Delims("[[", "]]").Parse(tmpl)
-	checkErr(err)
+	if err == nil {
+		return "", err
+	}
 	err = t.Execute(buf, fieldMap)
+	if err == nil {
+		return "", err
+	}
 	tmpl = buf.String()
 
-	return tmpl
+	return tmpl, nil
+
 }

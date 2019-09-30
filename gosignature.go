@@ -28,6 +28,7 @@ func main() {
 	configFile := flag.String("ini", "OutlookSignature.ini", "use alternative configuration file")
 	testmode := flag.Bool("testmode", false, "run in test mode")
 	newparser := flag.Bool("newparser", false, "use the new template parser")
+	force := flag.Bool("force", false, "empty destination directory without confirmation")
 	flag.Parse()
 
 	cfg, err := readConfig(filepath.Join(programPath, *configFile))
@@ -95,12 +96,21 @@ func main() {
 		extensions := [3]string{"txt", "htm", "rtf"}
 		generated := []string{}
 		templateFolder := filepath.Join(programPath, cfg.Section("Main").Key("TemplateFolder").MustString("Vorlagen"))
-		destFolder := getDestFolder()
+		destFolder := ""
+		if cfg.Section("Main").Key("AppDataPath").String() != "" {
+			destFolder = winExpandEnv(cfg.Section("Main").Key("AppDataPath").String())
+		} else {
+			destFolder = getDestFolder()
+		}
 		err = prepareFolder(destFolder)
 		checkErr(err)
+		if cfg.Section("Main").Key("EmptySignatureFolder").MustInt(0) == 1 && (*force || askForConfirmation("Do you really want to empty the destination directory?")) {
+			removeContents(destFolder)
+		}
 		signatureDefintions[0].signatureName = cfg.Section("Main").Key("TargetSignType").MustString(signatureDefintions[0].templateName)
 		signatureDefintions[1].signatureName = cfg.Section("Main").Key("TargetSignTypeReply").MustString(signatureDefintions[1].templateName)
 		for _, sd := range signatureDefintions {
+<<<<<<< HEAD
 			if sd.templateName != "" {
 				if !contains(generated, sd.signatureName) {
 					copyImages(templateFolder, sd.templateName, sd.signatureName, userName, destFolder)
@@ -121,6 +131,21 @@ func main() {
 						err = writeSignature(destFolder, sd.signatureName, ex, signature)
 						checkErr(err)
 						generated = append(generated, sd.signatureName)
+=======
+			if sd.templateName != "" && !contains(generated, sd.signatureName) {
+				copyImages(templateFolder, sd.templateName, sd.signatureName, userName, destFolder)
+				for _, ex := range extensions {
+					signature, err := readTemplate(filepath.Join(templateFolder, sd.templateName+"."+ex))
+					checkErr(err)
+					if *newparser {
+						signature, err = newParser(fieldMap, sd.templateName, signature, ex)
+						checkErr(err)
+					} else {
+						signature = compatParser(fieldMap,
+							cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
+							signature,
+							ex)
+>>>>>>> master
 					}
 				}
 				if sd.nodefault == 0 {
