@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -103,12 +102,12 @@ func winExpandEnv(path string) string {
 }
 
 func askForConfirmation(question string) bool {
-	reader := bufio.NewReader(os.Stdin)
+	response := ""
 
 	for {
 		fmt.Printf("%s [y/n]: ", question)
 
-		response, _ := reader.ReadString('\n')
+		fmt.Scanf("%s\n", &response)
 
 		response = strings.ToLower(strings.TrimSpace(response))
 
