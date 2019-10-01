@@ -15,8 +15,11 @@ func ldapConnect(ldapServer, ldapBind, ldapPassword string) (*ldap.Conn, error) 
 	}
 
 	err = conn.Bind(ldapBind, ldapPassword)
+	if err != nil {
+		return nil, err
+	}
 
-	return conn, err
+	return conn, nil
 }
 
 func ldapSearch(conn *ldap.Conn, ldapBaseDN, ldapFilter, userName string, fieldMapping map[string]string) (*ldap.SearchResult, error) {
@@ -36,8 +39,11 @@ func ldapSearch(conn *ldap.Conn, ldapBaseDN, ldapFilter, userName string, fieldM
 	)
 
 	search, err := conn.Search(searchRequest)
+	if err != nil {
+		return nil, err
+	}
 
-	return search, err
+	return search, nil
 
 }
 

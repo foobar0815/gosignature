@@ -45,7 +45,7 @@ func copyFile(sourceFile, destinationFile string) error {
 		return err
 	}
 
-	return err
+	return nil
 }
 
 func getUsername() (string, error) {
