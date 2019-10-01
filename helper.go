@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"strconv"
 	"strings"
 )
 
@@ -68,20 +67,6 @@ func getDestFolder() string {
 
 	return destFolder
 
-}
-
-func escapeUnicode(s string) string {
-	convertedString := ""
-
-	for _, r := range s {
-		if r > 127 {
-			convertedString += "\\u" + strconv.Itoa(int(r)) + "?"
-		} else {
-			convertedString += string(r)
-		}
-	}
-
-	return convertedString
 }
 
 func removeContents(dir string) error {
