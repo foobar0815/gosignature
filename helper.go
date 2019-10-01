@@ -49,17 +49,16 @@ func copyFile(sourceFile, destinationFile string) error {
 }
 
 func getUsername() (string, error) {
-	username := ""
-	user, err := user.Current()
-
 	if runtime.GOOS == "windows" {
-		username = os.Getenv("username")
-	} else {
-		username = user.Name
+		return os.Getenv("username"), nil
 	}
 
-	return username, err
+	user, err := user.Current()
+	if err != nil {
+		return "", err
+	}
 
+	return user.Name, nil
 }
 
 func getDestFolder() string {
