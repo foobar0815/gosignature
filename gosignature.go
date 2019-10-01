@@ -104,7 +104,7 @@ func main() {
 		}
 		err = prepareFolder(destFolder)
 		checkErrAndExit(err)
-		if cfg.Section("Main").Key("EmptySignatureFolder").MustInt(0) == 1 && (*force || askForConfirmation("Do you really want to empty the destination directory?")) {
+		if cfg.Section("Main").Key("EmptySignatureFolder").MustInt(0) == 1 && (*force || askForConfirmation("Do you really want to empty the destination directory ("+destFolder+")?")) {
 			removeContents(destFolder)
 		}
 		signatureDefintions[0].signatureName = cfg.Section("Main").Key("TargetSignType").MustString(signatureDefintions[0].templateName)
