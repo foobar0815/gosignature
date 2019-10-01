@@ -22,7 +22,7 @@ type signatureDefinition struct {
 
 func main() {
 	exe, err := os.Executable()
-	checkErr(err)
+	checkErrAndExit(err)
 	programPath := filepath.Dir(exe)
 
 	configFile := flag.String("ini", "OutlookSignature.ini", "use alternative configuration file")
@@ -32,7 +32,7 @@ func main() {
 	flag.Parse()
 
 	cfg, err := readConfig(filepath.Join(programPath, *configFile))
-	checkErr(err)
+	checkErrAndExit(err)
 
 	signatureDefintions := []*signatureDefinition{}
 
@@ -52,14 +52,14 @@ func main() {
 	ldapEntry := make(map[string]string)
 	if !(*testmode) && cfg.Section("Main").Key("LDAPBaseObjectDN").String() != "" {
 		userName, err = getUsername()
-		checkErr(err)
+		checkErrAndExit(err)
 		ldapConnStrings := strings.Split(cfg.Section("Main").Key("LDAPBaseObjectDN").String(), ";")
 		for i := 1; i <= len(ldapConnStrings); i++ {
 			ldapServer := strings.Split(ldapConnStrings[i-1], "/")[0]
 			ldapBaseDN := strings.Split(ldapConnStrings[i-1], "/")[1]
 
 			conn, err := ldapConnect(ldapServer, cfg.Section("Main").Key("LDAPReaderAccountName").String(), cfg.Section("Main").Key("LDAPReaderAccountPassword").String())
-			checkErr(err)
+			checkErrAndExit(err)
 
 			ldapSearchresult, err := ldapSearch(conn,
 				ldapBaseDN,
@@ -67,7 +67,7 @@ func main() {
 				userName,
 				cfg.Section("FieldMapping").KeysHash(),
 			)
-			checkErr(err)
+			checkErrAndExit(err)
 			ldapEntry = ldapSearchToHash(ldapSearchresult)
 
 			if len(ldapEntry) > 0 {
@@ -75,7 +75,7 @@ func main() {
 				signatureDefintions[1].templateName = cfg.Section("Main").Key("FixedSignTypeReplyForDN" + strconv.Itoa(i)).MustString(signatureDefintions[1].templateName)
 				break
 			} else if i == len(ldapConnStrings) {
-				checkErr(errors.New("user not found"))
+				checkErrAndExit(errors.New("user not found"))
 			}
 		}
 	} else {
@@ -103,7 +103,7 @@ func main() {
 			destFolder = getDestFolder()
 		}
 		err = prepareFolder(destFolder)
-		checkErr(err)
+		checkErrAndExit(err)
 		if cfg.Section("Main").Key("EmptySignatureFolder").MustInt(0) == 1 && (*force || askForConfirmation("Do you really want to empty the destination directory?")) {
 			removeContents(destFolder)
 		}
@@ -115,10 +115,10 @@ func main() {
 					copyImages(templateFolder, sd.templateName, sd.signatureName, userName, destFolder)
 					for _, ex := range extensions {
 						signature, err := readTemplate(filepath.Join(templateFolder, sd.templateName+"."+ex))
-						checkErr(err)
+						checkErrAndExit(err)
 						if *newparser {
 							signature, err = newParser(fieldMap, sd.templateName, signature, ex)
-							checkErr(err)
+							checkErrAndExit(err)
 						} else {
 							signature = compatParser(fieldMap,
 								cfg.Section("Main").Key("PlaceholderSymbol").MustString("@"),
@@ -129,7 +129,7 @@ func main() {
 							signature, _ = charmap.Windows1252.NewEncoder().String(signature)
 						}
 						err = writeSignature(destFolder, sd.signatureName, ex, signature)
-						checkErr(err)
+						checkErrAndExit(err)
 						generated = append(generated, sd.signatureName)
 					}
 				}

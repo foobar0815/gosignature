@@ -22,9 +22,15 @@ func contains(slice []string, searchString string) bool {
 	return false
 }
 
-func checkErr(err error) {
+func checkErrAndExit(err error) {
 	if err != nil {
 		log.Fatal("ERROR: ", err)
+	}
+}
+
+func checkErrAndContinue(err error) {
+	if err != nil {
+		log.Print("WARNING: ", err)
 	}
 }
 
