@@ -6,15 +6,15 @@ import (
 	"gopkg.in/ldap.v3"
 )
 
-func ldapConnect(ldapServer, ldapBind, ldapPassword string) (*ldap.Conn, error) {
+func ldapConnect(lcp *ldapConnectionProfile) (*ldap.Conn, error) {
 	ldap.DefaultTimeout = 1 * time.Second
 
-	conn, err := ldap.Dial("tcp", ldapServer)
+	conn, err := ldap.Dial("tcp", lcp.server)
 	if err != nil {
 		return nil, err
 	}
 
-	err = conn.Bind(ldapBind, ldapPassword)
+	err = conn.Bind(lcp.userdn, lcp.password)
 	if err != nil {
 		return nil, err
 	}
@@ -22,18 +22,18 @@ func ldapConnect(ldapServer, ldapBind, ldapPassword string) (*ldap.Conn, error) 
 	return conn, nil
 }
 
-func ldapSearch(conn *ldap.Conn, ldapBaseDN, ldapFilter, userName string, fieldMapping map[string]string) (*ldap.SearchResult, error) {
+func ldapSearch(conn *ldap.Conn, lsc *ldapSearchCriteria, userName string) (*ldap.SearchResult, error) {
 	attributes := []string{}
-	for _, v := range fieldMapping {
+	for _, v := range lsc.fieldmap {
 		if v != "" {
 			attributes = append(attributes, v[1:])
 		}
 	}
 
 	searchRequest := ldap.NewSearchRequest(
-		ldapBaseDN,
+		lsc.basedn,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		"("+ldapFilter+"(sAMAccountName="+userName+"))",
+		"("+lsc.filter+"("+lsc.userfield+"="+userName+"))",
 		attributes,
 		nil,
 	)

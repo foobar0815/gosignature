@@ -20,6 +20,19 @@ type signatureDefinition struct {
 	nodefault     int
 }
 
+type ldapConnectionProfile struct {
+	server   string
+	userdn   string
+	password string
+}
+
+type ldapSearchCriteria struct {
+	basedn    string
+	filter    string
+	userfield string
+	fieldmap  map[string]string
+}
+
 func main() {
 	exe, err := os.Executable()
 	checkErrAndExit(err)
@@ -51,22 +64,28 @@ func main() {
 	userName := ""
 	ldapEntry := make(map[string]string)
 	if !(*testmode) && cfg.Section("Main").Key("LDAPBaseObjectDN").String() != "" {
+
 		userName, err = getUsername()
 		checkErrAndExit(err)
+
+		lcp := new(ldapConnectionProfile)
+		lcp.userdn = cfg.Section("Main").Key("LDAPReaderAccountName").String()
+		lcp.password = cfg.Section("Main").Key("LDAPReaderAccountPassword").String()
+
+		lsc := new(ldapSearchCriteria)
+		lsc.fieldmap = cfg.Section("FieldMapping").KeysHash()
+		lsc.filter = cfg.Section("Main").Key("LDAPFilter").MustString("&(objectCategory=person)(objectClass=user)")
+		lsc.userfield = cfg.Section("Main").Key("LDAPUserFieldname").MustString("sAMAccountName")
+
 		ldapConnStrings := strings.Split(cfg.Section("Main").Key("LDAPBaseObjectDN").String(), ";")
 		for i := 1; i <= len(ldapConnStrings); i++ {
-			ldapServer := strings.Split(ldapConnStrings[i-1], "/")[0]
-			ldapBaseDN := strings.Split(ldapConnStrings[i-1], "/")[1]
+			lcp.server = strings.Split(ldapConnStrings[i-1], "/")[0]
+			lsc.basedn = strings.Split(ldapConnStrings[i-1], "/")[1]
 
-			conn, err := ldapConnect(ldapServer, cfg.Section("Main").Key("LDAPReaderAccountName").String(), cfg.Section("Main").Key("LDAPReaderAccountPassword").String())
+			conn, err := ldapConnect(lcp)
 			checkErrAndExit(err)
 
-			ldapSearchresult, err := ldapSearch(conn,
-				ldapBaseDN,
-				cfg.Section("Main").Key("LDAPFilter").MustString("&(objectCategory=person)(objectClass=user)"),
-				userName,
-				cfg.Section("FieldMapping").KeysHash(),
-			)
+			ldapSearchresult, err := ldapSearch(conn, lsc, userName)
 			conn.Close()
 			checkErrAndExit(err)
 			ldapEntry = ldapSearchToHash(ldapSearchresult)
