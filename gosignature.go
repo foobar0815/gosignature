@@ -99,8 +99,8 @@ func main() {
 			}
 		}
 	} else {
-		userName = "hkearny"
 		ldapEntry = ldapFakeEntry()
+		userName = ldapEntry["sAMAccountName"]
 	}
 
 	fieldMap := mapFields(ldapEntry, cfg.Section("FieldMapping").KeysHash())

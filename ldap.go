@@ -61,6 +61,7 @@ func ldapSearchToHash(searchResult *ldap.SearchResult) map[string]string {
 
 func ldapFakeEntry() map[string]string {
 	fakeentry := map[string]string{
+		"sAMAccountName":           "hkearney",
 		"givenName":                "Holly",
 		"sn":                       "Kearney",
 		"initials":                 "HK",
