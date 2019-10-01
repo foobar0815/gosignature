@@ -67,6 +67,7 @@ func main() {
 				userName,
 				cfg.Section("FieldMapping").KeysHash(),
 			)
+			conn.Close()
 			checkErrAndExit(err)
 			ldapEntry = ldapSearchToHash(ldapSearchresult)
 
