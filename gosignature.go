@@ -146,7 +146,8 @@ func main() {
 								ex)
 						}
 						if ex == "rtf" || ex == "txt" {
-							signature, _ = charmap.Windows1252.NewEncoder().String(signature)
+							signature, err = charmap.Windows1252.NewEncoder().String(signature)
+							checkErrAndContinue(err)
 						}
 						err = writeSignature(destFolder, sd.signatureName, ex, signature)
 						checkErrAndExit(err)
