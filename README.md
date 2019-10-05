@@ -1,18 +1,32 @@
-# An open source reimplementation of Kristof Zerbe's OutlookSignature
+# An open source reimplementation of Kristof Zerbe's (ZerbIT) "OutlookSignature"
 
 ## Build
+
+Fetch dependencies:
+
+```console
+go get .\...
+```
+
+Test (don't use "go run"):
+
+```console
+go build -o gosignature.exe; .\gosignature.exe -testmode
+```
+
+Build:
 
 ```console
 go build -o gosignature.exe
 ```
 
-To reduce binary size use:
+To reduce binary size use:  
 
 ```console
 go build -ldflags="-s -w" gosignature.exe
 ```
 
-Use [upx](https://upx.github.io) to reduce binary size even more:
+Use [UPX](https://upx.github.io) to reduce binary size even more:
 
 ```console
 upx gosignature.exe
@@ -36,13 +50,13 @@ Not supported. LDAP only for now.
 LDAPBaseObjectDN=
 ```
 
-List of LDAP servers, ports and base DNs (ldapserver1:port1/basedn1,ldapserver2:port2/basedn2,...)
+List of LDAP servers, ports and base DNs (ldapserver1:port1/basedn1,ldapserver2:port2/basedn2,...).
 
 ```ini
 LDAPReaderAccountName=
 ```
 
-Distinguished Name of an LDAP account with read rights.
+Distinguished Name of an LDAP account with read permissions.
 
 ```ini
 LDAPReaderAccountPassword=
@@ -60,7 +74,7 @@ LDAP user field name (defaults to "sAMAccountName").
 LDAPFilter=
 ```
 
-LDAP filter (defaults to ""&(objectCategory=person)(objectClass=user)")
+LDAP filter (defaults to "&(objectCategory=person)(objectClass=user)").
 
 ```ini
 TemplateFolder=
@@ -72,31 +86,31 @@ Template directory (defaults to "Vorlagen").
 EMailAccount=
 ```
 
-The generated signature is set as default signature for this Outlook profile (otherwise the default profile is used).
+Set as default signature for this Outlook profile (otherwise the default profile is used).
 
 ```ini
 SetForAllEMailAccounts=
 ```
 
-The generated signature is set as default signature for all Outlook profiles (**0**/1).
+Set as default signature for all Outlook profiles (**0**/1).
 
 ```ini
 AppDataPath=
 ```
 
-Destination directory (defaults to "%appdata"\Microsoft\Signarures" on Windows and the current working directory on any other OS)
+Destination directory (defaults to "%appdata%\Microsoft\Signatures" on Windows and the current working directory on any other OS).
 
 ```ini
 NoNewMessageSignature=
 ```
 
-Disable setting the default new message signature (**0**/1)
+Disable setting the default new message signature (**0**/1).
 
 ```ini
 NoReplyMessageSignature=
 ```
 
-Disable setting the default reply message signature (**0**/1)
+Disable setting the default reply message signature (**0**/1).
 
 ```ini
 FixedSignType=
@@ -104,7 +118,7 @@ FixedSignTypeForDN1=
 [...]
 ```
 
-Name of the template for the new message signature. (Use "FixedSignTypeForDN1 ... n" to generate diffrent signatures for each base DN.)
+Name of the new message template. Use "FixedSignTypeForDN1 ... n" to generate different signatures for each base DN.
 
 ```ini
 FixedSignTypeReply=
@@ -112,19 +126,19 @@ FixedSignTypeReplyForDN1=
 [...]
 ```
 
-Name of the template for the reply message signature. (Use "FixedSignTypeReplyForDN1 ... n" to generate diffrent signatures for each base DN.)
+Name of the the reply message template. Use "FixedSignTypeReplyForDN1 ... n" to generate different signatures for each base DN.
 
 ```ini
 FixedSignTypeNoMobile=
 ```
 
-Not supported.
+Name of an optional alternative new message template (originally intended to generate a signature without mobile phone number).
 
 ```ini
 FixedSignTypeReplyNoMobile=
 ```
 
-Not supported.
+Name of an optional alternative reply message template (originally intended to generate a signature without mobile phone number).
 
 ```ini
 TargetSignType=
@@ -142,7 +156,7 @@ Target name of the reply message signature (otherwise the name of the template i
 PlaceholderSymbol=
 ```
 
-Symbol which marks variables in templates (defaults to "@").
+Delimiter for placeholders (defaults to "@").
 
 ```ini
 LogFile=
@@ -162,9 +176,13 @@ Empty the destination directory before generating signatures (**0**/1). Use "-fo
 
 * Supports per user images (copies *username*.(gif|png|jpg) to portrait.(gif|png|jpg)!).
 
-* The plain text template should be UTF-8 encoded!
+* Supports Outlook 2010 and 2016 (and probably 2019 and 365 as well)
+
+* Plain text and HTML templates should be UTF-8 encoded!
 
 * Settings for "-ini" are relative to the program's base directory.
+
+* The field mapping is more flexible and no longer limited to the ones listed in the example configuration file, you can basically use any combination of placeholder and LDAP attribute.
 
 * Features a new and more powerful template parser based on [go's template package](https://golang.org/pkg/text/template/) ("-newparser", fixed delimiter: "[[ ... ]]", have a look at the examples!).
 
