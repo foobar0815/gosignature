@@ -150,7 +150,7 @@ func main() {
 					signature, err := readTemplate(filepath.Join(templateFolder, sd.templateName+"."+ex))
 					checkErrAndExit(err)
 					if *newparser {
-						signature, err = newParser(fieldMap, sd.templateName, signature, ex)
+						signature, err = newParser(fieldMap, sd.templateName, signature)
 						checkErrAndExit(err)
 					} else {
 						signature = compatParser(fieldMap,
