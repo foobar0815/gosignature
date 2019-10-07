@@ -5,7 +5,7 @@
 [[ .UserDef3 ]]
 
 [[ .Street ]] | [[ .Postcode ]] [[ .City ]]
-T [[ .Phone ]] | F [[ .Fax ]]
+T [[ .Phone ]] | F [[ .Fax ]][[if .mobile ]] || M [[ .mobile ]][[end]]
 
 Amtsgericht München | HRB 123456
 Geschäftsführer: Austin Ehrhardt
