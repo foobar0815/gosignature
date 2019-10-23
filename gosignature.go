@@ -225,7 +225,7 @@ func copyImages(templateFolder, srcName, dstName, userName, destFolder string) {
 		images, _ := filepath.Glob(filepath.Join(templateFolder, srcName+"*."+extension))
 
 		for _, image := range images {
-			copyFile(image, filepath.Join(destFolder, dstName+filepath.Ext(image)))
+			copyFile(image, filepath.Join(destFolder, strings.ReplaceAll(filepath.Base(image), srcName, dstName)))
 		}
 	}
 
