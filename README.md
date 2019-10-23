@@ -23,7 +23,7 @@ go build -o gosignature.exe
 To reduce binary size use:  
 
 ```console
-go build -ldflags="-s -w" gosignature.exe
+go build -ldflags="-s -w" -o gosignature.exe
 ```
 
 Use [UPX](https://upx.github.io) to reduce binary size even more:
