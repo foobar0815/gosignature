@@ -42,6 +42,7 @@ func main() {
 	testmode := flag.Bool("testmode", false, "run in test mode")
 	newparser := flag.Bool("newparser", false, "use the new template parser")
 	force := flag.Bool("force", false, "empty destination directory without confirmation")
+	userName := flag.String("username", "", "generate signature for another user")
 	flag.Parse()
 
 	cfg, err := readConfig(filepath.Join(programPath, *configFile))
@@ -75,12 +76,13 @@ func main() {
 	sd.signatureName = sd.templateName
 	signatureDefintions = append(signatureDefintions, sd)
 
-	userName := ""
 	ldapEntry := make(map[string]string)
 	if !(*testmode) && cfg.Section("Main").Key("LDAPBaseObjectDN").String() != "" {
 
-		userName, err = getUsername()
-		checkErrAndExit(err)
+		if *userName == "" {
+			*userName, err = getUsername()
+			checkErrAndExit(err)
+		}
 
 		lcp := new(ldapConnectionProfile)
 		lcp.userdn = cfg.Section("Main").Key("LDAPReaderAccountName").String()
@@ -99,7 +101,7 @@ func main() {
 			conn, err := ldapConnect(lcp)
 			checkErrAndExit(err)
 
-			ldapSearchresult, err := ldapSearch(conn, lsc, userName)
+			ldapSearchresult, err := ldapSearch(conn, lsc, *userName)
 			conn.Close()
 			checkErrAndExit(err)
 			ldapEntry = ldapSearchToHash(ldapSearchresult)
@@ -114,7 +116,7 @@ func main() {
 		}
 	} else {
 		ldapEntry = ldapFakeEntry()
-		userName = ldapEntry["sAMAccountName"]
+		*userName = ldapEntry["sAMAccountName"]
 	}
 
 	fieldMap := mapFields(ldapEntry, cfg.Section("FieldMapping").KeysHash())
@@ -145,7 +147,7 @@ func main() {
 	for _, sd := range signatureDefintions {
 		if sd.templateName != "" {
 			if !contains(generated, sd.signatureName) {
-				copyImages(templateFolder, sd.templateName, sd.signatureName, userName, destFolder)
+				copyImages(templateFolder, sd.templateName, sd.signatureName, *userName, destFolder)
 				for _, ex := range extensions {
 					signature, err := readTemplate(filepath.Join(templateFolder, sd.templateName+"."+ex))
 					checkErrAndExit(err)
