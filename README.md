@@ -5,7 +5,7 @@
 Fetch dependencies:
 
 ```console
-go get .\...
+go get gosignature
 ```
 
 Test (don't use "go run"):

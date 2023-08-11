@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"gopkg.in/ldap.v3"
+	"github.com/go-ldap/ldap/v3"
 )
 
 func ldapConnect(lcp *ldapConnectionProfile) (*ldap.Conn, error) {
