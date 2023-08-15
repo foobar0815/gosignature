@@ -57,12 +57,13 @@ LDAPReaderAccountName=
 ```
 
 Distinguished Name of an LDAP account with read permissions.
+If an authenticated session exists (Windows Domain Logon), leave blank in order to use that session.
 
 ```ini
 LDAPReaderAccountPassword=
 ```
 
-Password of the LDAP reader account.
+Password of the LDAP reader account. (Or empty for Windows session authentication.)
 
 ```ini
 LDAPUserFieldname=
