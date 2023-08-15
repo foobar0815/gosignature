@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"flag"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -21,7 +20,9 @@ type signatureDefinition struct {
 }
 
 type ldapConnectionProfile struct {
+	scheme   string
 	server   string
+	port     string
 	userdn   string
 	password string
 }
@@ -93,10 +94,22 @@ func main() {
 		lsc.filter = cfg.Section("Main").Key("LDAPFilter").MustString("&(objectCategory=person)(objectClass=user)")
 		lsc.userfield = cfg.Section("Main").Key("LDAPUserFieldname").MustString("sAMAccountName")
 
-		ldapConnStrings := strings.Split(cfg.Section("Main").Key("LDAPBaseObjectDN").String(), ";")
+		ldapConnStrings := strings.Split(cfg.Section("Main").Key("LDAPBaseObjectDN").String(), ",")
 		for i := 1; i <= len(ldapConnStrings); i++ {
 			lcp.server = strings.Split(ldapConnStrings[i-1], "/")[0]
 			lsc.basedn = strings.Split(ldapConnStrings[i-1], "/")[1]
+
+			// an SSL connection is required for GSSAPI binding
+			lcp.port = "389"
+			if strings.Contains(lcp.server, ":") {
+				lcp.port = strings.Split(lcp.server, ":")[1]
+				lcp.server = strings.Split(lcp.server, ":")[0]
+			}
+			if lcp.port != "636" {
+				lcp.scheme = "ldap"
+			} else {
+				lcp.scheme = "ldaps"
+			}
 
 			conn, err := ldapConnect(lcp)
 			checkErrAndExit(err)
@@ -114,6 +127,7 @@ func main() {
 				checkErrAndExit(errors.New("user not found"))
 			}
 		}
+
 	} else {
 		ldapEntry = ldapFakeEntry()
 		*userName = ldapEntry["sAMAccountName"]
@@ -190,7 +204,7 @@ func readConfig(configFile string) (*ini.File, error) {
 
 func readTemplate(template string) (string, error) {
 
-	read, err := ioutil.ReadFile(template)
+	read, err := os.ReadFile(template)
 
 	return string(read), err
 }
@@ -204,7 +218,7 @@ func prepareFolder(destFolder string) error {
 func writeSignature(destFolder, templateName, extension, content string) error {
 	fileName := templateName + "." + extension
 
-	err := ioutil.WriteFile(filepath.Join(destFolder, fileName), []byte(content), os.ModePerm)
+	err := os.WriteFile(filepath.Join(destFolder, fileName), []byte(content), os.ModePerm)
 
 	return err
 }

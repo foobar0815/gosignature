@@ -11,6 +11,7 @@ require (
 
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
+	github.com/alexbrainman/sspi v0.0.0-20210105120005-909beea2cc74 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.4 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
 )
