@@ -3,20 +3,40 @@ package main
 import (
 	"time"
 
-	"gopkg.in/ldap.v3"
+	"github.com/go-ldap/ldap/v3"
+
+	"github.com/go-ldap/ldap/v3/gssapi"
 )
 
 func ldapConnect(lcp *ldapConnectionProfile) (*ldap.Conn, error) {
 	ldap.DefaultTimeout = 1 * time.Second
 
-	conn, err := ldap.Dial("tcp", lcp.server)
+	conn, err := ldap.DialURL(lcp.scheme + "://" + lcp.server + ":" + lcp.port)
+	// I sometimes experienced DNS lookup errors on first try
+	conn, err = ldap.DialURL(lcp.scheme + "://" + lcp.server + ":" + lcp.port)
 	if err != nil {
 		return nil, err
 	}
 
-	err = conn.Bind(lcp.userdn, lcp.password)
-	if err != nil {
-		return nil, err
+	if lcp.password != "" {
+		// named Bind if username and password exists
+		err = conn.Bind(lcp.userdn, lcp.password)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// if a Windows logon session exists, retrieve current Kerberos session
+		sspiClient, err := gssapi.NewSSPIClient()
+		if err != nil {
+			return nil, err
+		}
+		defer sspiClient.Close()
+
+		// Bind using supplied SSPI client
+		err = conn.GSSAPIBind(sspiClient, "ldap/"+lcp.server, "")
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return conn, nil
