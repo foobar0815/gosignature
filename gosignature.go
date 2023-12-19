@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/text/encoding/charmap"
 	"gopkg.in/ini.v1"
 )
 
@@ -94,7 +93,7 @@ func main() {
 		lsc.filter = cfg.Section("Main").Key("LDAPFilter").MustString("&(objectCategory=person)(objectClass=user)")
 		lsc.userfield = cfg.Section("Main").Key("LDAPUserFieldname").MustString("sAMAccountName")
 
-		ldapConnStrings := strings.Split(cfg.Section("Main").Key("LDAPBaseObjectDN").String(), ",")
+		ldapConnStrings := strings.Split(cfg.Section("Main").Key("LDAPBaseObjectDN").String(), ";")
 		for i := 1; i <= len(ldapConnStrings); i++ {
 			lcp.server = strings.Split(ldapConnStrings[i-1], "/")[0]
 			lsc.basedn = strings.Split(ldapConnStrings[i-1], "/")[1]
@@ -174,10 +173,10 @@ func main() {
 							signature,
 							ex)
 					}
-					if ex == "rtf" || ex == "txt" {
-						signature, err = charmap.Windows1252.NewEncoder().String(signature)
-						checkErrAndContinue(err)
-					}
+					//if ex == "rtf" || ex == "txt" {
+					//	signature, err = charmap.Windows1252.NewEncoder().String(signature)
+					//	checkErrAndContinue(err)
+					//}
 					err = writeSignature(destFolder, sd.signatureName, ex, signature)
 					checkErrAndExit(err)
 					generated = append(generated, sd.signatureName)

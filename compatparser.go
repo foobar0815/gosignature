@@ -2,6 +2,8 @@ package main
 
 import (
 	"strings"
+
+	"golang.org/x/text/encoding/charmap"
 )
 
 func compatParser(fieldMap map[string]string, placeHolder, template, ex string) string {
@@ -13,12 +15,14 @@ func compatParser(fieldMap map[string]string, placeHolder, template, ex string) 
 }
 
 func replaceFields(fieldMap map[string]string, placeHolder, template string) string {
+	var err error
 	for k, v := range fieldMap {
+		v, err = charmap.Windows1252.NewEncoder().String(v)
+		checkErrAndContinue(err)
 		template = strings.Replace(template, placeHolder+strings.ToUpper(k)+placeHolder, v, -1)
 	}
 
 	return template
-
 }
 
 func replaceFullname(fieldMap map[string]string, placeHolder, template string) string {

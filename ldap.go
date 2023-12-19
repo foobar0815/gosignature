@@ -12,8 +12,6 @@ func ldapConnect(lcp *ldapConnectionProfile) (*ldap.Conn, error) {
 	ldap.DefaultTimeout = 1 * time.Second
 
 	conn, err := ldap.DialURL(lcp.scheme + "://" + lcp.server + ":" + lcp.port)
-	// I sometimes experienced DNS lookup errors on first try
-	conn, err = ldap.DialURL(lcp.scheme + "://" + lcp.server + ":" + lcp.port)
 	if err != nil {
 		return nil, err
 	}
